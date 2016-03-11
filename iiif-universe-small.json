@@ -2,7 +2,7 @@
   "@context": "http://iiif.io/api/presentation/2/context.json",
   "@id": "http://ryanfb.github.io/iiif-universe/iiif-universe.json",
   "@type": "sc:Collection",
-  "label": "IIIF Universe",
+  "label": "IIIF Small Universe",
   "collections": [
     {
       "@id": "http://manifests.ydc2.yale.edu/manifest",
@@ -24,17 +24,16 @@
       "@type": "sc:Collection",
       "label": "e-codices"
     },
-    {
-      "@id": "http://showcase.iiif.io/shims/chroniclingamerica/prezi/top.json",
+        {
+      "@id": "http://wellcomelibrary.org/service/collections/access/all-open/",
       "@type": "sc:Collection",
-      "label": "Chronicling America Newspapers by State"
+      "label": "Wellcome Library (Open)"
     },
     {
       "@id": "http://scta.info/iiif/collection/scta",
       "@type": "sc:Collection",
       "label": "Sentences Commentary Text Archive"
     },
-
         {
       "@id": "http://iiif.bodleian.ox.ac.uk/iiif/collection/All",
       "@type": "sc:Collection",
