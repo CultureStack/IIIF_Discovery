@@ -6,6 +6,9 @@ import urllib2
 import validators
 import json
 from pyld import jsonld
+from socket import error as SocketError
+import errno
+import time
 
 
 def get_recursively(search_dict, field):
@@ -104,6 +107,7 @@ class IIIF_Item():
         '''
         Load the content of a url via urllib2.
         '''
+        time.sleep(1)
         if self.uri is not None:
             try:
                 req = urllib2.Request(self.uri)
@@ -113,6 +117,10 @@ class IIIF_Item():
             except urllib2.URLError as e:
                 excType = e.__class__.__name__
                 return excType
+            except SocketError as e:
+                if e.errno != errno.ECONNRESET:
+                    raise # Not error we are looking for
+                pass # Handle error here.
 
     def json_expand(self):
         '''
@@ -169,7 +177,7 @@ class IIIF_Collection():
                 for collection_list in collection_lists:
                     for item in collection_list:
                         item_id = item['@id']
-                        # print item_id
+                        print 'Trying: ' + item_id
                         if 'manifests' in item:
                             for manifest in item['manifests']:
                                 self.master_manifest_list.append(
