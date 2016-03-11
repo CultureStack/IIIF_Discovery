@@ -1,6 +1,8 @@
 # IIIF_Discovery
 Test code for a basic not production-ready proof of concept IIIF Discovery tool.
 
+Lots of shonky/cludgy code!
+
 | File | Description|
 | ------------- | ------------- |
 | iiif_collections.py | Module with functions for grabbing IIIF items, recursing, etc |
