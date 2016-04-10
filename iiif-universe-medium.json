@@ -1,0 +1,48 @@
+{
+  "@context": "http://iiif.io/api/presentation/2/context.json",
+  "@id": "http://ryanfb.github.io/iiif-universe/iiif-universe.json",
+  "@type": "sc:Collection",
+  "label": "IIIF Small Universe",
+  "collections": [
+    {
+      "@id": "http://manifests.ydc2.yale.edu/manifest",
+      "@type": "sc:Collection",
+      "label": "Yale"
+    },
+    {
+      "@id": "https://graph.global/static/data/universes/iiif/stanford.json",
+      "@type": "sc:Collection",
+      "label": "Stanford"
+    },
+    {
+      "@id": "https://graph.global/static/data/universes/iiif/biblissima.json",
+      "@type": "sc:Collection",
+      "label": "Biblissima"
+    },
+    {
+      "@id": "https://graph.global/static/data/universes/iiif/e-codices.json",
+      "@type": "sc:Collection",
+      "label": "e-codices"
+    },
+        {
+      "@id": "http://wellcomelibrary.org/service/collections/access/all-open/",
+      "@type": "sc:Collection",
+      "label": "Wellcome Library (Open)"
+    },
+    {
+      "@id": "http://digital.library.villanova.edu/Collection/vudl:3/IIIF",
+      "@type": "sc:Collection",
+      "label": "Digital Library @ Villanova University"
+    },
+    {
+      "@id": "http://scta.info/iiif/collection/scta",
+      "@type": "sc:Collection",
+      "label": "Sentences Commentary Text Archive"
+    },
+        {
+      "@id": "http://iiif.bodleian.ox.ac.uk/iiif/collection/All",
+      "@type": "sc:Collection",
+      "label": "Bodleian Library, Oxford"
+    }
+  ]
+}
