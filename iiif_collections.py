@@ -119,8 +119,8 @@ class IIIF_Item():
                 return excType
             except SocketError as e:
                 if e.errno != errno.ECONNRESET:
-                    raise # Not error we are looking for
-                pass # Handle error here.
+                    raise  # Not error we are looking for
+                pass  # Handle error here.
 
     def json_expand(self):
         '''
@@ -181,12 +181,18 @@ class IIIF_Collection():
                         if 'manifests' in item:
                             for manifest in item['manifests']:
                                 self.master_manifest_list.append(
-                                    manifest['@id'])
+                                    {'@id': manifest['@id'],
+                                     '@type': 'sc:Manifest',
+                                     'label': manifest['label']})
                         else:
                             self.iiif_recurse(item_id)
             elif 'manifests' in source_data:
                 for manifest in source_data['manifests']:
-                    self.master_manifest_list.append(manifest['@id'])
+                    self.master_manifest_list.append(
+                        {'@id': manifest['@id'],
+                         '@type': 'sc:Manifest',
+                         'label': manifest['label']}
+                    )
         except ValueError:
             print 'Could not load that collection as the URI did not return json'
 
