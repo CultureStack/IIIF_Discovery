@@ -12,7 +12,7 @@ import json
 top_list = []
 master_list = []
 
-#top_level_collections = json.loads(IIIF_Item('https://raw.githubusercontent.com/ryanfb/iiif-universe/gh-pages/iiif-universe.json').source_data)
+# top_level_collections = json.loads(iiif_collections.IIIF_Item('https://raw.githubusercontent.com/ryanfb/iiif-universe/gh-pages/iiif-universe.json').source_data)
 collection_json = open('iiif-universe-small.json').read()
 top_level_collections = json.loads(collection_json)
 for top_level_collection in top_level_collections['collections']:
@@ -34,4 +34,4 @@ master_list.append(
      'label': 'Small Universe Harvest',
      '@type': 'sc:Collection',
      'collections': top_list})
-json.dump(master_list, open('master.json', 'wb'), sort_keys=True, indent=4)
+json.dump(master_list[0], open('master.json', 'wb'), sort_keys=False, indent=4)
