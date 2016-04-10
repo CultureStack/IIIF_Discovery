@@ -33,5 +33,7 @@ master_list.append(
      '@id': 'http://blahblah/all.json',
      'label': 'Small Universe Harvest',
      '@type': 'sc:Collection',
+     'description': 'Harvest from IIIF Universe,\
+     not including Internet Archive, or Villanova.',
      'collections': top_list})
 json.dump(master_list[0], open('master.json', 'wb'), sort_keys=True, indent=4)
