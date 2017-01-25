@@ -85,6 +85,7 @@ class IIIF_Collection():
 
 scta = IIIF_Collection('http://scta.info/iiif/collection/scta')
 scta.tree.show()
+print scta.tree.to_json(with_data=False)
 
 # coll = IIIF_Collection('http://manifests.britishart.yale.edu/collection/top')
 # coll.tree.show()
