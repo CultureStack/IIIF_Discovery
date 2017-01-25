@@ -23,6 +23,7 @@ class IIIF_Collection():
     def iiif_recurse(self, resource_uri, parent_id=None):
         try:
             source_data = json.loads(IIIF_Item(resource_uri).source_data)
+            # print source_data
             if parent_id:
                 escaped_id = '/'.join([parent_id,
                                        urllib.quote_plus(resource_uri)])
@@ -42,10 +43,13 @@ class IIIF_Collection():
                     IIIF_Item(resource_uri).source_data), 'collections')
                 for collection_list in collection_lists:
                     for item in collection_list:
+                        # print item
                         item_id = item['@id']
                         escaped_item_id = '/'.join([escaped_id,
                                                     urllib.quote_plus(item_id)])
+                        # print escaped_item_id
                         if not self.tree.get_node(escaped_item_id):
+                            # print 'Creating a collection node'
                             self.tree.create_node(
                                 item_id, escaped_item_id,
                                 parent=escaped_id)
@@ -53,15 +57,19 @@ class IIIF_Collection():
                             for manifest in item['manifests']:
                                 escaped_manifest_id = '/'.join(
                                     [escaped_item_id, urllib.quote_plus(manifest['@id'])])
+                                # print escaped_manifest_id
                                 if not self.tree.get_node(escaped_manifest_id):
                                     self.tree.create_node(
                                         manifest[
                                             '@id'], escaped_manifest_id,
                                         parent=escaped_item_id)
                         else:
+                            # print 'getting the collection: %s' % item_id 
                             self.iiif_recurse(item_id, parent_id=escaped_id)
-            elif 'manifests' in source_data:
+            if 'manifests' in source_data:
+                # print 'This bit it should be getting manifest'
                 for manifest in source_data['manifests']:
+                    # print manifest['@id']
                     escaped_manifest_id = '/'.join(
                         [escaped_id, urllib.quote_plus(manifest['@id'])])
                     if not self.tree.get_node(escaped_manifest_id):
@@ -74,5 +82,8 @@ class IIIF_Collection():
             the URI did not return json'
 
 
-scta = IIIF_Collection('http://scta.info/iiif/collection/scta')
-scta.tree.show()
+# scta = IIIF_Collection('http://scta.info/iiif/collection/scta')
+# scta.tree.show()
+
+coll = IIIF_Collection('http://manifests.britishart.yale.edu/collection/top')
+coll.tree.show()
