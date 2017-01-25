@@ -63,6 +63,7 @@ class IIIF_Collection():
                                         manifest[
                                             '@id'], escaped_manifest_id,
                                         parent=escaped_item_id)
+                                print self.tree.get_node(escaped_manifest_id).identifier
                         else:
                             # print 'getting the collection: %s' % item_id 
                             self.iiif_recurse(item_id, parent_id=escaped_id)
@@ -82,8 +83,8 @@ class IIIF_Collection():
             the URI did not return json'
 
 
-# scta = IIIF_Collection('http://scta.info/iiif/collection/scta')
-# scta.tree.show()
+scta = IIIF_Collection('http://scta.info/iiif/collection/scta')
+scta.tree.show()
 
-coll = IIIF_Collection('http://manifests.britishart.yale.edu/collection/top')
-coll.tree.show()
+# coll = IIIF_Collection('http://manifests.britishart.yale.edu/collection/top')
+# coll.tree.show()
