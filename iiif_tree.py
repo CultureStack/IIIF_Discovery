@@ -215,7 +215,8 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
                             parent=root_nid, data=manifest_data)
                         # function here to pass to exteral db
             if 'collections' in obj.source_dict:
-                collection_lists = get_recursively(obj.source_dict, 'collections')
+                collection_lists = get_recursively(
+                    obj.source_dict, 'collections')
                 for collection_list in collection_lists:
                     for item in collection_list:
                         coll_id = sanitise_uri(item['@id'])
@@ -224,19 +225,31 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
                         coll_data = base_data(item)
                         coll_data['path'] = de_nid(coll_nid, separator)
                         if not tr.get_node(coll_nid):
-                            tr.create_node(item['@id'], coll_nid, parent=root_nid, data=coll_data)
+                            tr.create_node(
+                                item['@id'],
+                                coll_nid,
+                                parent=root_nid,
+                                data=coll_data
+                            )
                             # function here to pass to exteral db
                         if 'manifests' in item:
                             for manifest in item['manifests']:
                                 manifest_id = sanitise_uri(manifest['@id'])
-                                manifest_nid = separator.join([coll_nid, manifest_id])
+                                manifest_nid = separator.join(
+                                    [coll_nid, manifest_id]
+                                )
                                 manifest_data = None
                                 manifest_data = base_data(manifest)
-                                manifest_data['path'] = de_nid(manifest_nid, separator)
+                                manifest_data['path'] = de_nid(
+                                    manifest_nid, separator
+                                )
                                 if not tr.get_node(manifest_nid):
                                     tr.create_node(
-                                        manifest['@id'], manifest_nid,
-                                        parent=coll_nid, data=manifest_data)
+                                        manifest['@id'],
+                                        manifest_nid,
+                                        parent=coll_nid,
+                                        data=manifest_data
+                                    )
                                     # function here to pass to exteral db
                         else:
                             iiif_recurse(item['@id'], tr, root_nid)
@@ -246,7 +259,8 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
 
 
 # tree = iiif_recurse(uri='http://wellcomelibrary.org/service/collections/')
-tree = iiif_recurse(uri="file:////Users/matt.mcgrattan/Documents/Github/IIIF_Discovery/iiif-universe-small.json")
+tree = iiif_recurse(
+    uri="file:////Users/matt.mcgrattan/Documents/Github/IIIF_Discovery/iiif-universe-small.json")
 # tree = iiif_recurse(uri='http://manifests.britishart.yale.edu/collection/top')
 # tree.show()
 with open('small-universe.json', 'w') as f:
