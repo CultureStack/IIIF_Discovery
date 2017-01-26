@@ -69,33 +69,158 @@ def uri_to_text(uri):
     return got
 
 
-
-def txt_to_ordereddict(text):
+def txt_to_dict(text, ordered=False):
     '''
-    Turn JSON (as text) into an ordered dict.
+    Turn JSON (as text) into a dict, ordered or not.
     '''
-    j = json.loads(text, object_pairs_hook=OrderedDict)
+    if ordered:
+        j = json.loads(text, object_pairs_hook=OrderedDict)
+    else:
+        j = json.loads(text)
     return j
 
 
-class IIIF_Collection():
+class IIIF_Object():
 
     '''
-    Class for working with IIIF Collections.
+    Class for working with IIIF objects
 
-    iiif_recurse works through a collection and grabs all of the manifests
-    recursing down through any collections within collections.
     '''
 
     def __init__(self, uri):
         self.uri = uri
-        print self.uri
+        self.identifier = self.uri
         try:
-            data_dict = txt_to_ordereddict(uri_to_text(self.uri))
-            print data_dict
+            text = uri_to_text(self.uri)
+            if text:
+                self.source_dict = txt_to_dict(text)
+            if self.source_dict:
+                self.base_data(ns=True)
         except:
+            # put some better error handling here.
             print 'Something went wrong.'
 
+    def base_data(self, ns):
+        '''
+        Extract the core IIIF data fields out.
 
-# IIIF_Collection(uri='http://scta.info/iiif/collection/scta')
-IIIF_Collection(uri='file:///Users/mmcg/Documents/Work/Github/IIIF_Discovery/scta.json')
+        if ns is set to True, the fields will
+        have their namespace stripped out (crudely).
+        '''
+
+        core = ['@id', '@type', '@context', 'label', 'description']
+        self.data = {}
+        for f in core:
+            if f in self.source_dict:
+                if ns:
+                    if ':' in self.source_dict[f]:
+                        self.data[f] = self.source_dict[f].split(':')[1]
+                    else:
+                        self.data[f] = self.source_dict[f]
+                else:
+                    self.data[f] = self.source_dict[f]
+
+
+def base_data(source_dict, ns=True):
+    '''
+    Extract the core IIIF data fields out.
+
+    if ns is set to True, the fields will
+    have their namespace stripped out (crudely).
+    '''
+
+    core = ['@id', '@type', '@context', 'label', 'description']
+    data = {}
+    for f in core:
+        if f in source_dict:
+            if ns:
+                if ':' in source_dict[f]:
+                    data[f] = source_dict[f].split(':')[1]
+                else:
+                    data[f] = source_dict[f]
+            else:
+                data[f] = source_dict[f]
+    return data
+
+
+def sanitise_uri(uri):
+    '''
+    Currently uses URL escaping, but could be
+    base64 encoding, some other two way function,
+    or a simple replace of / with _ or similar.
+    '''
+    return urllib.quote_plus(uri)
+
+def unsanitise_uri(uri):
+    return urllib.unquote(uri)
+
+def de_nid(nid, delimiter='/'):
+    nid_list = [unsanitise_uri(x) for x in nid.split(delimiter)]
+    return nid_list
+
+def iiif_recurse(uri, tr=None, parent_nid=None):
+    '''
+    Treelib nodes have a tag (human readable), and a nid (node id).
+
+    Sanitised uris are used in the nids, throughout, concatenated
+    with the parent id, with a separator, so the path segments can
+    be recreated.
+
+    Should use a list in data.
+    '''
+    obj = IIIF_Object(uri)
+    if not tr:
+        tr = Tree()
+    if parent_nid:
+        root_nid = '/'.join([parent_nid, sanitise_uri(uri)])
+        if not tr.get_node(root_nid):
+            tr.create_node(uri, root_nid, parent=parent_nid, data=obj.data)
+    else:
+        root_nid = sanitise_uri(uri)
+        tr.create_node(uri, root_nid, data=obj.data)
+    # is it recursing too much here?
+
+    print 'Parsing: %s' % obj.identifier
+    if 'collections' in obj.source_dict:
+        collection_lists = get_recursively(obj.source_dict, 'collections')
+        for collection_list in collection_lists:
+            for item in collection_list:
+                coll_id = sanitise_uri(item['@id'])
+                coll_nid = '/'.join([root_nid, coll_id])
+                coll_data = None
+                coll_data = base_data(item)
+                coll_data['path'] = de_nid(coll_nid)
+                if not tr.get_node(coll_nid):
+                    tr.create_node(item['@id'], coll_nid, parent=root_nid, data=coll_data)
+                if 'manifests' in item:
+                    for manifest in item['manifests']:
+                        manifest_id = sanitise_uri(manifest['@id'])
+                        manifest_nid = '/'.join([coll_nid, manifest_id])
+                        manifest_data = None
+                        manifest_data = base_data(manifest)
+                        manifest_data['path'] = de_nid(manifest_nid)
+                        if not tr.get_node(manifest_nid):
+                            tr.create_node(
+                                manifest['@id'], manifest_nid,
+                                parent=coll_nid, data=manifest_data)
+                else:
+                    iiif_recurse(item['@id'], tr, root_nid)
+    if 'manifests' in obj.source_dict:
+        for manifest in obj.source_dict['manifests']:
+            manifest_id = sanitise_uri(manifest['@id'])
+            manifest_nid = '/'.join([root_nid, manifest_id])
+            manifest_data = None
+            manifest_data = base_data(manifest)
+            manifest_data['path'] = de_nid(manifest_nid)
+            if not tr.get_node(manifest_nid):
+                tr.create_node(
+                    manifest['@id'], manifest_nid,
+                    parent=root_nid, data=manifest_data)
+    return tr
+
+
+tree = iiif_recurse(uri='http://biblissima.fr/iiif/collection/top')
+# tree = iiif_recurse(uri='http://manifests.britishart.yale.edu/collection/top')
+# tree.show()
+with open('local.json', 'w') as f:
+    json.dump(tree.to_dict(with_data=True), f, indent=4)
