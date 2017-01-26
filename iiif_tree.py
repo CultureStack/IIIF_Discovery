@@ -175,9 +175,11 @@ def iiif_recurse(uri, tr=None, parent_nid=None):
         root_nid = '/'.join([parent_nid, sanitise_uri(uri)])
         if not tr.get_node(root_nid):
             tr.create_node(uri, root_nid, parent=parent_nid, data=obj.data)
+            # function here to pass to exteral db
     else:
         root_nid = sanitise_uri(uri)
         tr.create_node(uri, root_nid, data=obj.data)
+        # function here to pass to exteral db
     # is it recursing too much here?
 
     print 'Parsing: %s' % obj.identifier
@@ -192,6 +194,7 @@ def iiif_recurse(uri, tr=None, parent_nid=None):
                 coll_data['path'] = de_nid(coll_nid)
                 if not tr.get_node(coll_nid):
                     tr.create_node(item['@id'], coll_nid, parent=root_nid, data=coll_data)
+                    # function here to pass to exteral db
                 if 'manifests' in item:
                     for manifest in item['manifests']:
                         manifest_id = sanitise_uri(manifest['@id'])
@@ -203,6 +206,7 @@ def iiif_recurse(uri, tr=None, parent_nid=None):
                             tr.create_node(
                                 manifest['@id'], manifest_nid,
                                 parent=coll_nid, data=manifest_data)
+                            # function here to pass to exteral db
                 else:
                     iiif_recurse(item['@id'], tr, root_nid)
     if 'manifests' in obj.source_dict:
@@ -216,6 +220,7 @@ def iiif_recurse(uri, tr=None, parent_nid=None):
                 tr.create_node(
                     manifest['@id'], manifest_nid,
                     parent=root_nid, data=manifest_data)
+                # function here to pass to exteral db
     return tr
 
 
