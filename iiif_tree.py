@@ -121,7 +121,7 @@ class IIIF_Object():
                     self.data[f] = self.source_dict[f]
 
 
-def base_data(source_dict, ns=True):
+def base_data(source_dict, ns=False):
     '''
     Extract the core IIIF data fields out.
 
@@ -165,7 +165,7 @@ def unsanitise_uri(uri):
     return urllib.unquote(uri)
 
 
-def de_nid(nid, delimiter=separator):
+def de_nid(nid, delimiter):
     '''
     Turn a treelib nid (node id) into a list that can be stored
     and used to create graphs, or ElasticSearch path hierarchies.
@@ -259,9 +259,9 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
 
 
 # tree = iiif_recurse(uri='http://wellcomelibrary.org/service/collections/')
-tree = iiif_recurse(
-    uri="file:////Users/matt.mcgrattan/Documents/Github/IIIF_Discovery/iiif-universe-small.json")
-# tree = iiif_recurse(uri='http://manifests.britishart.yale.edu/collection/top')
+# tree = iiif_recurse(
+#     uri="file:////Users/matt.mcgrattan/Documents/Github/IIIF_Discovery/iiif-universe-small.json")
+tree = iiif_recurse(uri='http://biblissima.fr/iiif/collection/top')
 # tree.show()
-with open('small-universe.json', 'w') as f:
+with open('bnf.json', 'w') as f:
     json.dump(tree.to_dict(with_data=True), f, indent=4)
