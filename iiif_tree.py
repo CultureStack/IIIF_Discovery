@@ -127,6 +127,10 @@ def base_data(source_dict, ns=True):
 
     if ns is set to True, the fields will
     have their namespace stripped out (crudely).
+
+    N.B. the namespace split doesn't work with
+    items that use Arks as the ID has a colon in
+    it.
     '''
 
     core = ['@id', '@type', '@context', 'label', 'description']
