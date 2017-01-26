@@ -151,12 +151,15 @@ def sanitise_uri(uri):
     '''
     return urllib.quote_plus(uri)
 
+
 def unsanitise_uri(uri):
     return urllib.unquote(uri)
+
 
 def de_nid(nid, delimiter='/'):
     nid_list = [unsanitise_uri(x) for x in nid.split(delimiter)]
     return nid_list
+
 
 def iiif_recurse(uri, tr=None, parent_nid=None):
     '''
@@ -168,63 +171,66 @@ def iiif_recurse(uri, tr=None, parent_nid=None):
 
     Should use a list in data.
     '''
-    obj = IIIF_Object(uri)
-    if not tr:
-        tr = Tree()
-    if parent_nid:
-        root_nid = '/'.join([parent_nid, sanitise_uri(uri)])
-        if not tr.get_node(root_nid):
-            tr.create_node(uri, root_nid, parent=parent_nid, data=obj.data)
-            # function here to pass to exteral db
-    else:
-        root_nid = sanitise_uri(uri)
-        tr.create_node(uri, root_nid, data=obj.data)
-        # function here to pass to exteral db
-    # is it recursing too much here?
-
-    print 'Parsing: %s' % obj.identifier
-    if 'collections' in obj.source_dict:
-        collection_lists = get_recursively(obj.source_dict, 'collections')
-        for collection_list in collection_lists:
-            for item in collection_list:
-                coll_id = sanitise_uri(item['@id'])
-                coll_nid = '/'.join([root_nid, coll_id])
-                coll_data = None
-                coll_data = base_data(item)
-                coll_data['path'] = de_nid(coll_nid)
-                if not tr.get_node(coll_nid):
-                    tr.create_node(item['@id'], coll_nid, parent=root_nid, data=coll_data)
-                    # function here to pass to exteral db
-                if 'manifests' in item:
-                    for manifest in item['manifests']:
-                        manifest_id = sanitise_uri(manifest['@id'])
-                        manifest_nid = '/'.join([coll_nid, manifest_id])
-                        manifest_data = None
-                        manifest_data = base_data(manifest)
-                        manifest_data['path'] = de_nid(manifest_nid)
-                        if not tr.get_node(manifest_nid):
-                            tr.create_node(
-                                manifest['@id'], manifest_nid,
-                                parent=coll_nid, data=manifest_data)
-                            # function here to pass to exteral db
-                else:
-                    iiif_recurse(item['@id'], tr, root_nid)
-    if 'manifests' in obj.source_dict:
-        for manifest in obj.source_dict['manifests']:
-            manifest_id = sanitise_uri(manifest['@id'])
-            manifest_nid = '/'.join([root_nid, manifest_id])
-            manifest_data = None
-            manifest_data = base_data(manifest)
-            manifest_data['path'] = de_nid(manifest_nid)
-            if not tr.get_node(manifest_nid):
-                tr.create_node(
-                    manifest['@id'], manifest_nid,
-                    parent=root_nid, data=manifest_data)
+    try:
+        obj = IIIF_Object(uri)
+        if not tr:
+            tr = Tree()
+        if parent_nid:
+            root_nid = '/'.join([parent_nid, sanitise_uri(uri)])
+            if not tr.get_node(root_nid):
+                tr.create_node(uri, root_nid, parent=parent_nid, data=obj.data)
                 # function here to pass to exteral db
+        else:
+            root_nid = sanitise_uri(uri)
+            tr.create_node(uri, root_nid, data=obj.data)
+            # function here to pass to exteral db
+        # is it recursing too much here?
+        if obj.source_dict:
+            print 'Parsing: %s' % obj.identifier
+            if 'collections' in obj.source_dict:
+                collection_lists = get_recursively(obj.source_dict, 'collections')
+                for collection_list in collection_lists:
+                    for item in collection_list:
+                        coll_id = sanitise_uri(item['@id'])
+                        coll_nid = '/'.join([root_nid, coll_id])
+                        coll_data = None
+                        coll_data = base_data(item)
+                        coll_data['path'] = de_nid(coll_nid)
+                        if not tr.get_node(coll_nid):
+                            tr.create_node(item['@id'], coll_nid, parent=root_nid, data=coll_data)
+                            # function here to pass to exteral db
+                        if 'manifests' in item:
+                            for manifest in item['manifests']:
+                                manifest_id = sanitise_uri(manifest['@id'])
+                                manifest_nid = '/'.join([coll_nid, manifest_id])
+                                manifest_data = None
+                                manifest_data = base_data(manifest)
+                                manifest_data['path'] = de_nid(manifest_nid)
+                                if not tr.get_node(manifest_nid):
+                                    tr.create_node(
+                                        manifest['@id'], manifest_nid,
+                                        parent=coll_nid, data=manifest_data)
+                                    # function here to pass to exteral db
+                        else:
+                            iiif_recurse(item['@id'], tr, root_nid)
+            if 'manifests' in obj.source_dict:
+                for manifest in obj.source_dict['manifests']:
+                    manifest_id = sanitise_uri(manifest['@id'])
+                    manifest_nid = '/'.join([root_nid, manifest_id])
+                    manifest_data = None
+                    manifest_data = base_data(manifest)
+                    manifest_data['path'] = de_nid(manifest_nid)
+                    if not tr.get_node(manifest_nid):
+                        tr.create_node(
+                            manifest['@id'], manifest_nid,
+                            parent=root_nid, data=manifest_data)
+                        # function here to pass to exteral db
+    except:
+        pass
     return tr
 
 
-tree = iiif_recurse(uri='http://biblissima.fr/iiif/collection/top')
+tree = iiif_recurse(uri='http://wellcomelibrary.org/service/collections/')
 # tree = iiif_recurse(uri='http://manifests.britishart.yale.edu/collection/top')
 # tree.show()
 with open('local.json', 'w') as f:
