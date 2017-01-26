@@ -181,6 +181,10 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
     Sanitised uris are used in the nids, throughout, concatenated
     with the parent id, with a separator, so the path segments can
     be recreated.
+
+    Comments: Nid and denid adds an extra level of list handling, as it joins
+    and the splits. Might be better to create the path (no processing)
+    and then create the nid.
     '''
     try:
         obj = IIIF_Object(uri)
