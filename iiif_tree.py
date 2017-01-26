@@ -191,6 +191,18 @@ def iiif_recurse(uri, tr=None, parent_nid=None):
         # is it recursing too much here?
         if obj.source_dict:
             print 'Parsing: %s' % obj.identifier
+            if 'manifests' in obj.source_dict:
+                for manifest in obj.source_dict['manifests']:
+                    manifest_id = sanitise_uri(manifest['@id'])
+                    manifest_nid = '/'.join([root_nid, manifest_id])
+                    manifest_data = None
+                    manifest_data = base_data(manifest)
+                    manifest_data['path'] = de_nid(manifest_nid)
+                    if not tr.get_node(manifest_nid):
+                        tr.create_node(
+                            manifest['@id'], manifest_nid,
+                            parent=root_nid, data=manifest_data)
+                        # function here to pass to exteral db
             if 'collections' in obj.source_dict:
                 collection_lists = get_recursively(obj.source_dict, 'collections')
                 for collection_list in collection_lists:
@@ -217,18 +229,6 @@ def iiif_recurse(uri, tr=None, parent_nid=None):
                                     # function here to pass to exteral db
                         else:
                             iiif_recurse(item['@id'], tr, root_nid)
-            if 'manifests' in obj.source_dict:
-                for manifest in obj.source_dict['manifests']:
-                    manifest_id = sanitise_uri(manifest['@id'])
-                    manifest_nid = '/'.join([root_nid, manifest_id])
-                    manifest_data = None
-                    manifest_data = base_data(manifest)
-                    manifest_data['path'] = de_nid(manifest_nid)
-                    if not tr.get_node(manifest_nid):
-                        tr.create_node(
-                            manifest['@id'], manifest_nid,
-                            parent=root_nid, data=manifest_data)
-                        # function here to pass to exteral db
     except:
         pass
     return tr
