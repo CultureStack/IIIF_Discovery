@@ -201,35 +201,27 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
             root_nid = sanitise_uri(uri)
             tr.create_node(uri, root_nid, data=obj.data)
             # function here to pass to exteral db
+        recursion_lists = ['members', 'collections', 'manifests']
+        recursion_candidates = ['sc:Collection']
+        # leaf_candidates = ['sc:Manifest']
         if obj.source_dict:
-            if 'members' in obj.source_dict:
-                for member in obj.source_dict['members']:
-                    if 'manifest' in member['@type'].lower():
-                        # print 'Manifest'
-                        manifest_id = sanitise_uri(member['@id'])
-                        manifest_nid = separator.join([root_nid, manifest_id])
-                        manifest_data = None
-                        manifest_data = base_data(member)
-                        manifest_data['path'] = de_nid(manifest_nid, separator)
-                        if not tr.get_node(manifest_nid):
+            for r in recursion_lists:
+                if r in obj.source_dict:
+                    for item in obj.source_dict[r]:
+                        item_id = sanitise_uri(item['@id'])
+                        item_nid = separator.join([root_nid,
+                                                   item_id])
+                        item_data = None
+                        item_data = base_data(item)
+                        item_data['path'] = de_nid(item_nid,
+                                                   separator)
+                        if not tr.get_node(item_nid):
                             tr.create_node(
-                                member['@id'], manifest_nid,
-                                parent=root_nid, data=manifest_data)
-                    elif 'collection' in member['@type'].lower():
-                        collection_id = sanitise_uri(member['@id'])
-                        collection_nid = separator.join([root_nid,
-                                                         collection_id])
-                        collection_data = None
-                        collection_data = base_data(member)
-                        collection_data['path'] = de_nid(collection_nid,
-                                                         separator)
-                        if not tr.get_node(collection_nid):
-                            tr.create_node(
-                                member['@id'], collection_nid,
-                                parent=root_nid, data=collection_data)
-                        iiif_recurse(member['@id'], tr, root_nid)
-                    else:
-                        pass
+                                item['@id'], item_nid,
+                                parent=root_nid, data=item_data)
+                        if '@type' in item:
+                            if item['@type'] in recursion_candidates:
+                                iiif_recurse(item['@id'], tr, root_nid)
     except:
         pass
     return tr
@@ -239,7 +231,7 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
 # tree = iiif_recurse(
 #     uri="file:////Users/matt.mcgrattan/Documents/Github/IIIF_Discovery/iiif-universe-small.json")
 tree = iiif_recurse(
-    uri='http://wellcomelibrary.org/service/collections/archives/lightweight')
+    uri='http://biblissima.fr/iiif/collection/gallica-bnf/arsenal-library/')
 tree.show()
-with open('wellcome_archives.json', 'w') as f:
-    json.dump(tree.to_dict(with_data=True), f, indent=4)
+# with open('wellcome_archives.json', 'w') as f:
+#     json.dump(tree.to_dict(with_data=True), f, indent=4)
