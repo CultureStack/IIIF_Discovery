@@ -245,7 +245,7 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
 # tree = iiif_recurse(
 #     uri="file:////Users/matt.mcgrattan/Documents/Github/IIIF_Discovery/iiif-universe-small.json")
 tree = iiif_recurse(
-    uri='http://wellcomelibrary.org/service/collections/archives/lightweight')
+    uri='http://wellcomelibrary.org/service/collections/archives/GALTON')
 tree.show()
-# with open('wellcome_archives.json', 'w') as f:
-#     json.dump(tree.to_dict(with_data=True), f, indent=4)
+with open('wellcome_archives_galton.json', 'w') as f:
+    json.dump(tree.to_dict(with_data=True), f, indent=4)
