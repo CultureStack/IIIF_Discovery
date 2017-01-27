@@ -207,14 +207,10 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
                     if 'manifest' in member['@type'].lower():
                         # print 'Manifest'
                         manifest_id = sanitise_uri(member['@id'])
-                        # print manifest_id
                         manifest_nid = separator.join([root_nid, manifest_id])
-                        # print manifest_nid
-                        # print root_nid
                         manifest_data = None
                         manifest_data = base_data(member)
                         manifest_data['path'] = de_nid(manifest_nid, separator)
-                        # print manifest_data['path']
                         if not tr.get_node(manifest_nid):
                             tr.create_node(
                                 member['@id'], manifest_nid,
@@ -231,8 +227,6 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
                             tr.create_node(
                                 member['@id'], collection_nid,
                                 parent=root_nid, data=collection_data)
-                        # print 'Would recurse into: %s' % member['@id']
-                        # print 'Root nid would be: %s' % root_nid
                         iiif_recurse(member['@id'], tr, root_nid)
                     else:
                         pass
@@ -245,7 +239,7 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
 # tree = iiif_recurse(
 #     uri="file:////Users/matt.mcgrattan/Documents/Github/IIIF_Discovery/iiif-universe-small.json")
 tree = iiif_recurse(
-    uri='http://wellcomelibrary.org/service/collections/archives/GALTON')
+    uri='http://wellcomelibrary.org/service/collections/archives/lightweight')
 tree.show()
-with open('wellcome_archives_galton.json', 'w') as f:
+with open('wellcome_archives.json', 'w') as f:
     json.dump(tree.to_dict(with_data=True), f, indent=4)
