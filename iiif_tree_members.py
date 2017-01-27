@@ -216,11 +216,11 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
 def dict_parse(dict, root_nid, tree, separator, recursion_lists, dereferenceable):
     for r in recursion_lists:
         if r in dict:
-            if r == 'sequences':
-                print 'sequence'
-                obj = dict[r][0]
-            else:
-                obj = dict[r]
+            # if r == 'sequences':
+            #     print 'sequence'
+            #     obj = dict[r][0]
+            # else:
+            obj = dict[r]
             for item in obj:#dict[r]:
                 print item['@id']
                 item_id = sanitise_uri(item['@id'])
