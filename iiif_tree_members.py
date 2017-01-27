@@ -175,7 +175,7 @@ def de_nid(nid, delimiter):
     return nid_list
 
 
-def iiif_recurse(uri, seen=None, tr=None, parent_nid=None, separator='/'):
+def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
     '''
     Treelib nodes have a tag (human readable), and a nid (node id).
 
@@ -188,43 +188,36 @@ def iiif_recurse(uri, seen=None, tr=None, parent_nid=None, separator='/'):
     and then create the nid.
     '''
     try:
-        if not seen:
-            seen = []
-            print 'Creating seen'
-        if uri in seen:
-            print 'Seen URI before'
-        else:
-            obj = IIIF_Object(uri)
-            if obj.source_dict:
-                seen.append(uri)
-            if not tr:
-                tr = Tree()
-            if parent_nid:
-                root_nid = separator.join([parent_nid, sanitise_uri(uri)])
-                if not tr.get_node(root_nid):
-                    tr.create_node(uri, root_nid, parent=parent_nid, data=obj.data)
-                    # function here to pass to exteral db
-            else:
-                root_nid = sanitise_uri(uri)
-                tr.create_node(uri, root_nid, data=obj.data)
+        print 'URI: %s' % uri
+        obj = IIIF_Object(uri)
+        if not tr:
+            tr = Tree()
+        if parent_nid:
+            root_nid = separator.join([parent_nid, sanitise_uri(uri)])
+            if not tr.get_node(root_nid):
+                tr.create_node(uri, root_nid, parent=parent_nid, data=obj.data)
                 # function here to pass to exteral db
-            recursion_lists = [
-                'members', 'collections', 'manifests', 'sequences', 'canvases']
-            dereferenceable = ['sc:Collection', 'sc:Manifest']
-            # leaf_candidates = ['sc:Manifest']
-            if obj.source_dict:
-                dict_parse(obj.source_dict, root_nid, tr, separator,
-                           recursion_lists, dereferenceable, seen)
+        else:
+            root_nid = sanitise_uri(uri)
+            tr.create_node(uri, root_nid, data=obj.data)
+            # function here to pass to exteral db
+        recursion_lists = [
+            'members', 'collections', 'manifests', 'sequences', 'canvases']
+        dereferenceable = ['sc:Collection']#, 'sc:Manifest']
+        # leaf_candidates = ['sc:Manifest']
+        if obj.source_dict:
+            dict_parse(obj.source_dict, root_nid, tr, separator,
+                       recursion_lists, dereferenceable)
     except:
         pass
     return tr
 
 
-def dict_parse(dict, root_nid, tree, separator, recursion_lists, dereferenceable, seen):
+def dict_parse(dict, root_nid, tree, separator, recursion_lists, dereferenceable):
     for r in recursion_lists:
         if r in dict:
             for item in dict[r]:
-                print item
+                print item['@id']
                 item_id = sanitise_uri(item['@id'])
                 item_nid = separator.join([root_nid,
                                            item_id])
@@ -237,30 +230,27 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists, dereferenceable
                     tree.create_node(
                         item['@id'], item_nid,
                         parent=root_nid, data=item_data)
+                # dict_parse(
+                #     item, item_nid, tree, separator,
+                #     recursion_lists, dereferenceable
+                # )
                 for sub in recursion_lists:
                     if sub in item:
-                        # print item
-                        if '@type' in item:
-                            if item['@type'] in dereferenceable:
-                                # print 'Trying: %s' % item['@id']
-                                iiif_recurse(item['@id'], tree=tree, parent_nid=root_nid, seen=seen)
-                        else:
-                            dict_parse(
-                            item[sub], item_nid, tree, separator,
-                            recursion_lists, dereferenceable, seen)
-
-                        # dict_parse(
-                        #     item[sub], item_nid, tree, separator,
-                        #     recursion_lists, dereferenceable, seen)
-                    # else:
-                    #     if '@type' in item:
-                    #         if item['@type'] in dereferenceable:
-                    #             iiif_recurse(item['@id'], tree=tree, parent_nid=root_nid, seen=seen)
+                        for subitem in item[sub]:
+                            if '@type' in subitem:
+                                print subitem['@type']
+                                if subitem['@type'] in dereferenceable:
+                                    print 'Trying: %s' % subitem['@id']
+                                else:
+                                    dict_parse(
+                                        item, item_nid, tree, separator,
+                                        recursion_lists, dereferenceable
+                                    )
 
 # tree = iiif_recurse(uri='http://wellcomelibrary.org/service/collections/')
 # tree = iiif_recurse(
 #     uri="file:////Users/matt.mcgrattan/Documents/Github/IIIF_Discovery/iiif-universe-small.json")
-tree = iiif_recurse(uri='http://scta.info/iiif/pp-reims/manifest')
+tree = iiif_recurse(uri='http://scta.info/iiif/collection/scta')
 tree.show()
 # with open('wellcome_archives.json', 'w') as f:
 #     json.dump(tree.to_dict(with_data=True), f, indent=4)
