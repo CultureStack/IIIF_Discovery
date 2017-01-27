@@ -216,12 +216,8 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
 def dict_parse(dict, root_nid, tree, separator, recursion_lists, dereferenceable):
     for r in recursion_lists:
         if r in dict:
-            # if r == 'sequences':
-            #     print 'sequence'
-            #     obj = dict[r][0]
-            # else:
             obj = dict[r]
-            for item in obj:#dict[r]:
+            for item in obj:  
                 print item['@id']
                 item_id = sanitise_uri(item['@id'])
                 item_nid = separator.join([root_nid,
@@ -235,7 +231,7 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists, dereferenceable
                     tree.create_node(
                         item['@id'], item_nid,
                         parent=root_nid, data=item_data)
-                if item['@type'] in dereferenceable:
+                if ('@type' in item) and (item['@type'] in dereferenceable):
                     try:
                         iiif_recurse(item['@id'], tree, root_nid)
                     except:
@@ -246,27 +242,12 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists, dereferenceable
                         )
                 else:
                     dict_parse(
-                            item, item_nid, tree, separator,
-                            recursion_lists, dereferenceable
-                        )
+                        item, item_nid, tree, separator,
+                        recursion_lists, dereferenceable
+                    )
 
-                # for sub in recursion_lists:
-                #     if sub in item:
-                #         for subitem in item[sub]:
-                #             if '@type' in subitem:
-                #                 print subitem['@type']
-                #                 if subitem['@type'] in dereferenceable:
-                #                     print 'Trying: %s' % subitem['@id']
-                #                 else:
-                #                     dict_parse(
-                #                         item, item_nid, tree, separator,
-                #                         recursion_lists, dereferenceable
-                #                     )
 
-# tree = iiif_recurse(uri='http://wellcomelibrary.org/service/collections/')
-# tree = iiif_recurse(
-#     uri="file:////Users/matt.mcgrattan/Documents/Github/IIIF_Discovery/iiif-universe-small.json")
-tree = iiif_recurse(uri='http://scta.info/iiif/collection/scta')
+tree = iiif_recurse(uri='http://biblissima.fr/iiif/collection/gallica-bnf/')
 tree.show()
-# with open('wellcome_archives.json', 'w') as f:
-#     json.dump(tree.to_dict(with_data=True), f, indent=4)
+with open('bnf_test.json', 'w') as f:
+    json.dump(tree.to_dict(with_data=True), f, indent=4)
