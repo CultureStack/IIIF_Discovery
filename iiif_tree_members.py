@@ -217,7 +217,7 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists, dereferenceable
     for r in recursion_lists:
         if r in dict:
             obj = dict[r]
-            for item in obj:  
+            for item in obj:
                 print item['@id']
                 item_id = sanitise_uri(item['@id'])
                 item_nid = separator.join([root_nid,
