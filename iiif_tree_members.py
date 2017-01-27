@@ -203,13 +203,13 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
             # function here to pass to exteral db
         recursion_lists = [
             'members', 'collections', 'manifests', 'sequences', 'canvases']
-        dereferenceable = ['sc:Collection']#, 'sc:Manifest']
+        dereferenceable = ['sc:Collection', 'sc:Manifest']
         # leaf_candidates = ['sc:Manifest']
         if obj.source_dict:
             dict_parse(obj.source_dict, root_nid, tr, separator,
                        recursion_lists, dereferenceable)
     except:
-        pass
+        raise
     return tr
 
 
@@ -230,22 +230,27 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists, dereferenceable
                     tree.create_node(
                         item['@id'], item_nid,
                         parent=root_nid, data=item_data)
-                # dict_parse(
-                #     item, item_nid, tree, separator,
-                #     recursion_lists, dereferenceable
-                # )
-                for sub in recursion_lists:
-                    if sub in item:
-                        for subitem in item[sub]:
-                            if '@type' in subitem:
-                                print subitem['@type']
-                                if subitem['@type'] in dereferenceable:
-                                    print 'Trying: %s' % subitem['@id']
-                                else:
-                                    dict_parse(
-                                        item, item_nid, tree, separator,
-                                        recursion_lists, dereferenceable
-                                    )
+                if item['@type'] in dereferenceable:
+                    try:
+                        iiif_recurse(item['@id'], tree, root_nid)
+                    except:
+                        print 'Could not dereference uri: %s' % item['@id']
+                        dict_parse(
+                            item, item_nid, tree, separator,
+                            recursion_lists, dereferenceable
+                        )
+                # for sub in recursion_lists:
+                #     if sub in item:
+                #         for subitem in item[sub]:
+                #             if '@type' in subitem:
+                #                 print subitem['@type']
+                #                 if subitem['@type'] in dereferenceable:
+                #                     print 'Trying: %s' % subitem['@id']
+                #                 else:
+                #                     dict_parse(
+                #                         item, item_nid, tree, separator,
+                #                         recursion_lists, dereferenceable
+                #                     )
 
 # tree = iiif_recurse(uri='http://wellcomelibrary.org/service/collections/')
 # tree = iiif_recurse(
