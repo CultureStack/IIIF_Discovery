@@ -166,11 +166,11 @@ class IIIF_Collection():
         self.uri = uri
         self.master_manifest_list = []
         self.iiif_recurse(self.uri)
+        self.running_list = []
 
     def iiif_recurse(self, resource_uri):
         try:
             source_data = json.loads(IIIF_Item(resource_uri).source_data)
-            # print source_data
             if 'collections' in source_data:
                 collection_lists = get_recursively(json.loads(
                     IIIF_Item(resource_uri).source_data), 'collections')

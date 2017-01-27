@@ -47,14 +47,14 @@ def dict_traverse(dict, graphdb):
                     graphdb.merge(Relationship(parent_node,
                                                'hasPart', object_node))
                     print 'Relationship'
-                for item in value['children']:
-                    dict_traverse(item, graphdb)
+                if 'children' in value:
+                    for item in value['children']:
+                        dict_traverse(item, graphdb)
             else:
                 print 'No idea what this is'
         else:
             parent = value['data']['path'][-2]
             object_node = Node('sc:Manifest', uri=identifier)
-
             parent_node = Node('sc:Collection', uri=parent)
             graphdb.merge(object_node)
             print 'Obj node'
@@ -67,7 +67,7 @@ def dict_traverse(dict, graphdb):
 
 def main():
     g = Graph("http://neo4j:kocicka@localhost:7474/db/data/")
-    source = json_loader('bnf.json')
+    source = json_loader('wellcome_archives_galton.json')
     dict_traverse(source, g)
 
 
