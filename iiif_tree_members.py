@@ -231,9 +231,11 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists,
     down through the dict (from the JSON) in order to handle any
     inline content.
     '''
+    types = {'collections': 'sc:Collection', 'manifests': 'sc:Manifest'}
     for r in recursion_lists:
         if r in dict:
             obj = dict[r]
+            implicit_type = types.setdefault(r, None)
             for item in obj:
                 print item['@id']
                 item_id = sanitise_uri(item['@id'])
@@ -248,6 +250,8 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists,
                     tree.create_node(
                         item['@id'], item_nid,
                         parent=root_nid, data=item_data)
+                if '@type' not in item:
+                    item['@type'] = implicit_type
                 if ('@type' in item) and (item['@type'] in dereferenceable):
                     try:
                         iiif_recurse(item['@id'], tree, root_nid)
@@ -264,7 +268,7 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists,
                     )
 
 
-tree = iiif_recurse(uri='http://manifests.britishart.yale.edu/collection/top')
+tree = iiif_recurse(uri='http://biblissima.fr/iiif/collection/gallica-bnf/manuscripts-department/')
 tree.show()
-with open('ycba_test.json', 'w') as f:
+with open('bnf_manuscripts.json', 'w') as f:
     json.dump(tree.to_dict(with_data=True), f, indent=4)
