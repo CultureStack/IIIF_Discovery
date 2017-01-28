@@ -11,6 +11,10 @@ Read a IIIF Collection and generate a treelib tree from it,
 which can be rendered as JSON, saved as a standard dict,
 or passed out to another service such as a graph databaase,
 RDBMS, or key-value store.
+
+
+** Possible problem recursing into second level of collections inside
+collections.**
 '''
 
 
