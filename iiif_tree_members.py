@@ -203,7 +203,8 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
             # function here to pass to exteral db
         recursion_lists = [
             'members', 'collections', 'manifests', 'sequences', 'canvases']
-        dereferenceable = ['sc:Collection', 'sc:Manifest']
+        # dereferenceable = ['sc:Collection', 'sc:Manifest']
+        dereferenceable = ['sc:Collection']
         # leaf_candidates = ['sc:Manifest']
         if obj.source_dict:
             dict_parse(obj.source_dict, root_nid, tr, separator,
@@ -213,7 +214,19 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
     return tr
 
 
-def dict_parse(dict, root_nid, tree, separator, recursion_lists, dereferenceable):
+def dict_parse(dict, root_nid, tree, separator, recursion_lists,
+               dereferenceable):
+    '''
+    Read a Python dictionary containing a IIIF object or part of
+    one.
+
+    Recurse down through the object, generating tree entries.tree
+
+    If the item is of a dereferenceable type, try to follow the
+    and recurse into that object, but if not, just keep recursing
+    down through the dict (from the JSON) in order to handle any
+    inline content.
+    '''
     for r in recursion_lists:
         if r in dict:
             obj = dict[r]
@@ -247,7 +260,7 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists, dereferenceable
                     )
 
 
-tree = iiif_recurse(uri='http://biblissima.fr/iiif/collection/gallica-bnf/')
+tree = iiif_recurse(uri='http://manifests.britishart.yale.edu/collection/top')
 tree.show()
-with open('bnf_test.json', 'w') as f:
+with open('ycba_test.json', 'w') as f:
     json.dump(tree.to_dict(with_data=True), f, indent=4)
