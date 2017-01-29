@@ -44,7 +44,7 @@ def dict_traverse(dict, graphdb):
                     graphdb.merge(parent_node)
                     print 'Parent node: %s' % parent
                     graphdb.merge(Relationship(parent_node,
-                                              'hasPart', object_node))
+                                               'hasPart', object_node))
                 else:
                     print 'Root node: %s' % identifier
             else:
