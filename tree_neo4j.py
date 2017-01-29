@@ -23,17 +23,17 @@ def dict_traverse(dict, graphdb):
     Possible that the data in the graph has to
     include this information gathered at harvest time.
     '''
-    parent_types = {'sc:Collection': 'sc:Collection',
-                    'sc:Manifest': 'sc:Collection',
-                    'collection': 'sc:Collection',
-                    'manifest': 'sc:Collection',
-                    'sc:Sequence': 'sc:Manifest',
-                    'sc:Canvas': 'sc:Sequence'}
+    implicit_parent_types = {'sc:Collection': 'sc:Collection',
+                             'sc:Manifest': 'sc:Collection',
+                             'collection': 'sc:Collection',
+                             'manifest': 'sc:Collection',
+                             'sc:Sequence': 'sc:Manifest',
+                             'sc:Canvas': 'sc:Sequence'}
     for key, value in dict.iteritems():
         identifier = value['data']['@id']
         if '@type' in value['data']:
             item_type = value['data']['@type']
-            parent_type = parent_types.setdefault(item_type, None)
+            parent_type = implicit_parent_types.setdefault(item_type, None)
             if parent_type:
                 object_node = Node(item_type, uri=identifier)
                 graphdb.merge(object_node)
