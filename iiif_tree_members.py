@@ -243,6 +243,9 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists,
                                            item_id])
                 item_data = None
                 item_data = base_data(item)
+                if '@type' not in item:
+                    item['@type'] = implicit_type
+                    item_data['@type'] = implicit_type
                 item_data['path'] = de_nid(item_nid,
                                            separator)
                 if not tree.get_node(item_nid):
@@ -250,8 +253,7 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists,
                     tree.create_node(
                         item['@id'], item_nid,
                         parent=root_nid, data=item_data)
-                if '@type' not in item:
-                    item['@type'] = implicit_type
+
                 if ('@type' in item) and (item['@type'] in dereferenceable):
                     try:
                         iiif_recurse(item['@id'], tree, root_nid)
@@ -268,7 +270,7 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists,
                     )
 
 
-tree = iiif_recurse(uri='http://wellcomelibrary.org/service/collections/archives/lightweight')
+tree = iiif_recurse(uri='http://biblissima.fr/iiif/collection/top')
 tree.show()
-with open('wellcome_light.json', 'w') as f:
+with open('bnf_top.json', 'w') as f:
     json.dump(tree.to_dict(with_data=True), f, indent=4)
