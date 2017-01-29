@@ -17,6 +17,12 @@ def create_relationship(graph_db, type, item1, item2):
 
 
 def dict_traverse(dict, graphdb):
+    '''
+    Can rewrite this as the iiif traversal code
+    now sets the type if the type isn't present.
+
+    Could be a very simple function.
+    '''
     for key, value in dict.iteritems():
         identifier = value['data']['@id']
         if '@type' in value['data']:
@@ -67,7 +73,8 @@ def dict_traverse(dict, graphdb):
 
 def main():
     g = Graph("http://neo4j:kocicka@localhost:7474/db/data/")
-    source = json_loader('wellcome_archives_galton.json')
+    # g = Graph("http://neo4j:neo4j@localhost:7474/db/data/")
+    source = json_loader('bnf_top.json')
     dict_traverse(source, g)
 
 
