@@ -261,7 +261,7 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
 # tree = iiif_recurse(uri='http://wellcomelibrary.org/service/collections/')
 # tree = iiif_recurse(
 #     uri="file:////Users/matt.mcgrattan/Documents/Github/IIIF_Discovery/iiif-universe-small.json")
-tree = iiif_recurse(uri='http://wellcomelibrary.org/service/collections/archives/lightweight')
+tree = iiif_recurse(uri='http://biblissima.fr/iiif/collection/gallica-bnf/arsenal-library/')
 # tree.show()
-with open('wellcome_archives.json', 'w') as f:
+with open('bnf_manifests.json', 'w') as f:
     json.dump(tree.to_dict(with_data=True), f, indent=4)
