@@ -18,63 +18,48 @@ def create_relationship(graph_db, type, item1, item2):
 
 def dict_traverse(dict, graphdb):
     '''
-    Can rewrite this as the iiif traversal code
-    now sets the type if the type isn't present.
+    Needs work to handle ranges as a parent type.
 
-    Could be a very simple function.
+    Possible that the data in the graph has to
+    include this information gathered at harvest time.
     '''
+    parent_types = {'sc:Collection': 'sc:Collection',
+                    'sc:Manifest': 'sc:Collection',
+                    'collection': 'sc:Collection',
+                    'manifest': 'sc:Collection',
+                    'sequence': 'sc:Manifest',
+                    'canvas': 'sequence'}
     for key, value in dict.iteritems():
         identifier = value['data']['@id']
         if '@type' in value['data']:
-            type = value['data']['@type']
-        else:
-            type = None
-        if type:
-            if 'manifest' in type.lower():
-                parent = value['data']['path'][-2]
-                object_node = Node('sc:Manifest', uri=identifier)
-                parent_node = Node('sc:Collection', uri=parent)
+            item_type = value['data']['@type']
+            parent_type = parent_types.setdefault(item_type, None)
+            if parent_type:
+                object_node = Node(item_type, uri=identifier)
                 graphdb.merge(object_node)
-                print 'Obj node'
-                graphdb.merge(parent_node)
-                print 'Parent node'
-                graphdb.merge(Relationship(parent_node,
-                                           'hasPart', object_node))
-                print 'Relationship'
-            elif 'collection' in type.lower():
-                object_node = Node('sc:Collection', uri=identifier)
-                graphdb.merge(object_node)
-                print 'Obj node'
+                print 'Obj node: %s' % identifier
                 if 'path' in value['data']:
                     parent = value['data']['path'][-2]
-                    parent_node = Node('sc:Collection', uri=parent)
+                    parent_node = Node(parent_type, uri=parent)
                     graphdb.merge(parent_node)
-                    print 'Parent node'
+                    print 'Parent node: %s' % parent
                     graphdb.merge(Relationship(parent_node,
-                                               'hasPart', object_node))
-                    print 'Relationship'
-                if 'children' in value:
-                    for item in value['children']:
-                        dict_traverse(item, graphdb)
+                                              'hasPart', object_node))
+                else:
+                    print 'Root node: %s' % identifier
             else:
-                print 'No idea what this is'
+                print 'Cannot set parent type for: %s' % identifier
         else:
-            parent = value['data']['path'][-2]
-            object_node = Node('sc:Manifest', uri=identifier)
-            parent_node = Node('sc:Collection', uri=parent)
-            graphdb.merge(object_node)
-            print 'Obj node'
-            graphdb.merge(parent_node)
-            print 'Parent node'
-            graphdb.merge(Relationship(parent_node,
-                                       'hasPart', object_node))
-            print 'Relationship'
+            print 'No type available for: %s' % identifier
+        if 'children' in value:
+            for item in value['children']:
+                dict_traverse(item, graphdb)
 
 
 def main():
     g = Graph("http://neo4j:kocicka@localhost:7474/db/data/")
     # g = Graph("http://neo4j:neo4j@localhost:7474/db/data/")
-    source = json_loader('bnf_top.json')
+    source = json_loader('wellcome_light.json')
     dict_traverse(source, g)
 
 
