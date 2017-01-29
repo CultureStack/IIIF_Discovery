@@ -27,8 +27,8 @@ def dict_traverse(dict, graphdb):
                     'sc:Manifest': 'sc:Collection',
                     'collection': 'sc:Collection',
                     'manifest': 'sc:Collection',
-                    'sequence': 'sc:Manifest',
-                    'canvas': 'sequence'}
+                    'sc:Sequence': 'sc:Manifest',
+                    'sc:Canvas': 'sc:Sequence'}
     for key, value in dict.iteritems():
         identifier = value['data']['@id']
         if '@type' in value['data']:
