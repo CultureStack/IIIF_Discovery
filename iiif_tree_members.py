@@ -100,7 +100,7 @@ class IIIF_Object():
             if text:
                 self.source_dict = txt_to_dict(text)
             if self.source_dict:
-                self.base_data(ns=True)
+                self.base_data(ns=False)
         except:
             # put some better error handling here.
             print 'Something went wrong.'
@@ -268,7 +268,7 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists,
                     )
 
 
-tree = iiif_recurse(uri='http://biblissima.fr/iiif/collection/gallica-bnf/manuscripts-department/')
+tree = iiif_recurse(uri='http://wellcomelibrary.org/service/collections/archives/lightweight')
 tree.show()
-with open('bnf_manuscripts.json', 'w') as f:
+with open('wellcome_light.json', 'w') as f:
     json.dump(tree.to_dict(with_data=True), f, indent=4)
