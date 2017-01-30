@@ -11,39 +11,7 @@ Read a IIIF Collection and generate a treelib tree from it,
 which can be rendered as JSON, saved as a standard dict,
 or passed out to another service such as a graph databaase,
 RDBMS, or key-value store.
-
-
-** Possible problem recursing into second level of collections inside
-collections.**
 '''
-
-
-def get_recursively(search_dict, field):
-    """
-    Takes a dict with nested lists and dicts,
-    and searches all dicts for a key of the field
-    provided.
-    """
-    fields_found = []
-
-    for key, value in search_dict.iteritems():
-
-        if key == field:
-            fields_found.append(value)
-
-        elif isinstance(value, dict):
-            results = get_recursively(value, field)
-            for result in results:
-                fields_found.append(result)
-
-        elif isinstance(value, list):
-            for item in value:
-                if isinstance(item, dict):
-                    more_results = get_recursively(item, field)
-                    for another_result in more_results:
-                        fields_found.append(another_result)
-
-    return fields_found
 
 
 def uri_validate(uri):
@@ -105,15 +73,13 @@ class IIIF_Object():
             # put some better error handling here.
             print 'Something went wrong.'
 
-    def base_data(self, ns):
+    def base_data(self, ns=False):
         '''
         Extract the core IIIF data fields out.
-
-        if ns is set to True, the fields will
-        have their namespace stripped out (crudely).
         '''
 
-        core = ['@id', '@type', '@context', 'label', 'description']
+        core = ['@id', '@type', '@context', 'label', 'description',
+                'width', 'height']
         self.data = {}
         for f in core:
             if f in self.source_dict:
@@ -138,7 +104,8 @@ def base_data(source_dict, ns=False):
     it.
     '''
 
-    core = ['@id', '@type', '@context', 'label', 'description']
+    core = ['@id', '@type', '@context', 'label',
+            'description', 'width', 'height']
     data = {}
     for f in core:
         if f in source_dict:
@@ -179,7 +146,8 @@ def de_nid(nid, delimiter):
     return nid_list
 
 
-def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
+def iiif_recurse(uri, tr=None, parent_nid=None,
+                 separator='/', parent_type=None):
     '''
     Treelib nodes have a tag (human readable), and a nid (node id).
 
@@ -198,18 +166,16 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
             tr = Tree()
         if parent_nid:
             root_nid = separator.join([parent_nid, sanitise_uri(uri)])
+            if parent_type:
+                obj.data['parent_type'] = parent_type
             if not tr.get_node(root_nid):
                 tr.create_node(uri, root_nid, parent=parent_nid, data=obj.data)
-                # function here to pass to exteral db
         else:
             root_nid = sanitise_uri(uri)
             tr.create_node(uri, root_nid, data=obj.data)
-            # function here to pass to exteral db
         recursion_lists = [
             'members', 'collections', 'manifests', 'sequences', 'canvases']
-        # dereferenceable = ['sc:Collection', 'sc:Manifest']
-        dereferenceable = ['sc:Collection']
-        # leaf_candidates = ['sc:Manifest']
+        dereferenceable = ['sc:Collection', 'sc:Manifest']
         if obj.source_dict:
             dict_parse(obj.source_dict, root_nid, tr, separator,
                        recursion_lists, dereferenceable)
@@ -219,7 +185,7 @@ def iiif_recurse(uri, tr=None, parent_nid=None, separator='/'):
 
 
 def dict_parse(dict, root_nid, tree, separator, recursion_lists,
-               dereferenceable):
+               dereferenceable, parent_type=None):
     '''
     Read a Python dictionary containing a IIIF object or part of
     one.
@@ -231,18 +197,39 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists,
     down through the dict (from the JSON) in order to handle any
     inline content.
     '''
-    types = {'collections': 'sc:Collection', 'manifests': 'sc:Manifest'}
+    implicit_types = {'collections': 'sc:Collection',
+                      'manifests': 'sc:Manifest',
+                      'sequences': 'sc:Sequence',
+                      'canvases': 'sc:Canvas'}
     for r in recursion_lists:
         if r in dict:
             obj = dict[r]
-            implicit_type = types.setdefault(r, None)
+            implicit_type = implicit_types.setdefault(r, None)
+            if '@type' in dict:
+                parent_type = dict['@type']
+                print 'parent type: %s' % parent_type
+            # count = -1
             for item in obj:
-                print item['@id']
+                #
+                # Not using the ID generation.
+                #
+                # count += 1
+                # if '@id' not in item:
+                #     '''
+                #     Create a placeholder ID by adding a running count
+                #     to the parent id, to handle, e.g. image annotations
+                #     that may not have an @id
+                #     '''
+                #     item['@id'] = '/'.join([de_nid(root_nid, separator)[-1],
+                #                             r,
+                #                             str(count)])
                 item_id = sanitise_uri(item['@id'])
                 item_nid = separator.join([root_nid,
                                            item_id])
                 item_data = None
                 item_data = base_data(item)
+                if parent_type:
+                    item_data['parent_type'] = parent_type
                 if '@type' not in item:
                     item['@type'] = implicit_type
                     item_data['@type'] = implicit_type
@@ -253,24 +240,28 @@ def dict_parse(dict, root_nid, tree, separator, recursion_lists,
                     tree.create_node(
                         item['@id'], item_nid,
                         parent=root_nid, data=item_data)
-
-                if ('@type' in item) and (item['@type'] in dereferenceable):
+                if (('@type' in item) and
+                        (item['@type'] in dereferenceable)):
                     try:
-                        iiif_recurse(item['@id'], tree, root_nid)
+                        iiif_recurse(item['@id'], tree, root_nid,
+                                     parent_type=parent_type)
                     except:
                         print 'Could not dereference uri: %s' % item['@id']
                         dict_parse(
                             item, item_nid, tree, separator,
-                            recursion_lists, dereferenceable
+                            recursion_lists, dereferenceable,
+                            parent_type=parent_type
                         )
                 else:
                     dict_parse(
                         item, item_nid, tree, separator,
-                        recursion_lists, dereferenceable
+                        recursion_lists, dereferenceable,
+                        parent_type=parent_type
                     )
 
 
-tree = iiif_recurse(uri='http://biblissima.fr/iiif/collection/top')
+tree = iiif_recurse(
+    uri='http://gallica.bnf.fr/iiif/ark:/12148/bpt6k10413011/manifest.json')
 tree.show()
-with open('bnf_top.json', 'w') as f:
+with open('man_test.json', 'w') as f:
     json.dump(tree.to_dict(with_data=True), f, indent=4)
